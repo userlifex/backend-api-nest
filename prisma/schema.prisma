@@ -19,7 +19,7 @@ model Person {
   sex         String?
   phoneNumber String? @map("phone_number")
 
-  user        User?
+  user User?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -28,21 +28,120 @@ model Person {
 }
 
 model User {
-  uuid       String     @id @default(uuid())
-  id         Int        @default(autoincrement())
-  username   String     @unique
-  email      String     @unique
-  password   String
-  role       Role       @default(USER)
-  status     UserStatus @default(UNVERIFIED)
+  uuid     String     @id @default(uuid())
+  id       Int        @default(autoincrement())
+  username String     @unique
+  email    String     @unique
+  password String
+  role     Role       @default(USER)
+  status   UserStatus @default(UNVERIFIED)
 
-  personUuid String     @map("person_uuid")
-  person Person @relation(fields: [personUuid], references: [uuid], onDelete: Cascade)
+  personUuid String        @map("person_uuid")@unique
+  person     Person        @relation(fields: [personUuid], references: [uuid], onDelete: Cascade)
+  tokens     Token[]
+  orders     Order[]
+  cart       CartProduct[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("users")
+}
+
+model Token {
+  uuid      String    @id @default(uuid())
+  id        Int       @default(autoincrement())
+  token     String
+  tokenType TokenType @map("token_type")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  userUuid String @map("user_uuid")
+  user     User   @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
+
+  @@map("tokens")
+}
+
+model Product {
+  uuid        String        @id @default(uuid())
+  id          Int           @default(autoincrement())
+  name        String
+  price       Float
+  status      ProductStatus @default(ACTIVE)
+  stock       Int
+  description String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  cart   CartProduct[]
+  orders OrderProduct[]
+
+  @@map("products")
+}
+
+model Order {
+  uuid      String   @id @default(uuid())
+  id        Int      @default(autoincrement())
+  total     Float
+  orderDate DateTime @default(now()) @map("order_date")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  userUuid String @map("user_uuid")
+  user     User   @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
+
+  products OrderProduct[]
+  @@map("orders")
+}
+
+model OrderProduct {
+  uuid String @id @default(uuid())
+  id   Int    @default(autoincrement())
+
+  orderUuid String @map("order_uuid")
+  order     Order  @relation(fields: [orderUuid], references: [uuid], onDelete: Cascade)
+
+  productUuid String  @map("product_uuid")
+  product     Product @relation(fields: [productUuid], references: [uuid], onDelete: Cascade)
+
+  quantity  Int
+  salePrice Float @map("sale_price")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("order_products")
+}
+
+model CartProduct {
+  uuid     String @id @default(uuid())
+  id       Int    @default(autoincrement())
+  quantity Int
+
+  userUuid String @map("user_uuid")
+  user     User   @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
+
+  productUuid String  @map("product_uuid")
+  product     Product @relation(fields: [productUuid], references: [uuid], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum TokenType {
+  REFRESH
+  ACCESS
+  RECOVERY
+  VERIFY
 }
 
 enum Role {

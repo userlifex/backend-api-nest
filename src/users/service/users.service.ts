@@ -12,8 +12,7 @@ export class UsersService {
   }
 
   findAll() {
-    throw new NotFoundException();
-    //return this.prisma.user.findMany({});
+    return this.prisma.user.findMany({});
   }
 
   findOne(id: number) {
