@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["interactiveTransactions"]
 }
 
 datasource db {
@@ -10,37 +11,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Person {
-  uuid        String  @id @default(uuid())
-  id          Int     @default(autoincrement())
-  firstName   String  @map("first_name")
-  lastName    String  @map("last_name")
-  address     String?
-  sex         String?
-  phoneNumber String? @map("phone_number")
-
-  user User?
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("people")
-}
-
 model User {
-  uuid     String     @id @default(uuid())
-  id       Int        @default(autoincrement())
-  username String     @unique
-  email    String     @unique
+  uuid     String @id @default(uuid())
+  id       Int    @unique @default(autoincrement())
+  username String @unique
+  email    String @unique
   password String
-  role     Role       @default(USER)
-  status   UserStatus @default(UNVERIFIED)
+  role     String
 
-  personUuid String        @map("person_uuid")@unique
-  person     Person        @relation(fields: [personUuid], references: [uuid], onDelete: Cascade)
-  tokens     Token[]
-  orders     Order[]
-  cart       CartProduct[]
+  firstName String  @map("first_name")
+  lastName  String  @map("last_name")
+  address   String?
+
+  tokens Token[]
+  orders Order[]
+  cart   CartProduct[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -50,7 +35,7 @@ model User {
 
 model Token {
   uuid      String    @id @default(uuid())
-  id        Int       @default(autoincrement())
+  id        Int       @unique @default(autoincrement())
   token     String
   tokenType TokenType @map("token_type")
 
@@ -64,13 +49,13 @@ model Token {
 }
 
 model Product {
-  uuid        String        @id @default(uuid())
-  id          Int           @default(autoincrement())
+  uuid        String  @id @default(uuid())
+  id          Int     @unique @default(autoincrement())
   name        String
   price       Float
-  status      ProductStatus @default(ACTIVE)
   stock       Int
   description String?
+  imgUrl      String?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -83,7 +68,7 @@ model Product {
 
 model Order {
   uuid      String   @id @default(uuid())
-  id        Int      @default(autoincrement())
+  id        Int      @unique @default(autoincrement())
   total     Float
   orderDate DateTime @default(now()) @map("order_date")
 
@@ -99,7 +84,7 @@ model Order {
 
 model OrderProduct {
   uuid String @id @default(uuid())
-  id   Int    @default(autoincrement())
+  id   Int    @unique @default(autoincrement())
 
   orderUuid String @map("order_uuid")
   order     Order  @relation(fields: [orderUuid], references: [uuid], onDelete: Cascade)
@@ -118,7 +103,7 @@ model OrderProduct {
 
 model CartProduct {
   uuid     String @id @default(uuid())
-  id       Int    @default(autoincrement())
+  id       Int    @unique @default(autoincrement())
   quantity Int
 
   userUuid String @map("user_uuid")
@@ -147,10 +132,4 @@ enum TokenType {
 enum Role {
   ADMIN
   USER
-}
-
-enum UserStatus {
-  VERIFIED
-  UNVERIFIED
-  DISABLED
 }
